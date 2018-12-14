@@ -38,6 +38,7 @@ public class CheckPermissionsActivity extends AppCompatActivity {
     }
 
     public void checkPermissions() {
+        Log.d("checkPermissions", "checkPermissions...");
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED ||

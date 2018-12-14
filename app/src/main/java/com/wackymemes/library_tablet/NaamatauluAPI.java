@@ -20,7 +20,7 @@ public class NaamatauluAPI extends AsyncTask<File, Void, String> {
     public UploadListener delegate = null;
     private String recognizedName = "";
 
-    static final String baseUrl = "http://api.wackymemes.com/api/v1/";
+    static final String baseUrl = "https://naamataulu-backend.herokuapp.com/api/v1/";
     static final String subUrl = "users/recognize/";
     OkHttpClient client = new OkHttpClient();
 
@@ -34,6 +34,8 @@ public class NaamatauluAPI extends AsyncTask<File, Void, String> {
 
     @Override
     protected String doInBackground(File... file) {
+        if (file == null)
+            return null;
         if (file.length == 0 || file[0] == null)
             return null;
         RequestBody formBody = new MultipartBody.Builder()
@@ -41,7 +43,7 @@ public class NaamatauluAPI extends AsyncTask<File, Void, String> {
                 .addFormDataPart("faces", file[0].getName(),
                         RequestBody.create(MediaType.parse("image/png"), file[0]))
                 .build();
-        Request request = new Request.Builder().url(baseUrl + subUrl).post(formBody).addHeader("Accept", "application/json; q=0.5").addHeader("Authorization", "Token 53a1b2abef30f0ec42d96a2f81cbf58377542ca2").build();
+        Request request = new Request.Builder().url(baseUrl + subUrl).post(formBody).addHeader("Accept", "application/json; q=0.5").addHeader("Authorization", "Token 722dbf159017f700f69088c6dfbfc90ba3e65a56").build();
         Response response = null;
         try {
             response = this.client.newCall(request).execute();

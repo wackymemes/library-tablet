@@ -55,7 +55,7 @@ public class PersonalActivity extends Activity {
         reserveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final Intent i = new Intent(PersonalActivity.this, ReserveActivity.class);
+                final Intent i = new Intent(PersonalActivity.this, BarcodeScannerActivity.class);
                 startActivity(i);
                 finish();
             }
@@ -77,7 +77,7 @@ public class PersonalActivity extends Activity {
             Log.d(LOGTAG, "Starting...");
             //faceDetector.transferImgFromDownloadToInternal(photoPath, "face.png");
             File img = faceDetector.cropLargestFace(photoPath);
-            if (img == null) {
+            if (img == null && false) {
                 Intent i = new Intent(this, MainActivity.class);
                 startActivity(i);
                 finish();
