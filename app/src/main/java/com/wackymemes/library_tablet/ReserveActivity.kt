@@ -10,7 +10,7 @@ import android.widget.TextView
 class ReserveActivity : AppCompatActivity() {
 
     internal var reserveOnClickListener: View.OnClickListener = View.OnClickListener {
-        val i = Intent(this@ReserveActivity, PersonalActivity::class.java)
+        val i = Intent(this@ReserveActivity, MainActivity::class.java)
         startActivity(i)
     }
 

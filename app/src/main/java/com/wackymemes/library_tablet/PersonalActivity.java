@@ -20,9 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import butterknife.ButterKnife;
 
@@ -89,11 +87,11 @@ public class PersonalActivity extends Activity {
                     if (result == null)
                         return;
 
-                    Map<String, String> myMap = new HashMap<String, String>();
+                    List<Map<String, String>> myMap = new ArrayList<>();
                     ObjectMapper mapper = new ObjectMapper();
 
                     try {
-                        myMap = mapper.readValue(result, HashMap.class);
+                        myMap = mapper.readValue(result, (new ArrayList<>()).getClass());
                     } catch (JsonGenerationException e) {
                         e.printStackTrace();
                     } catch (JsonMappingException e) {
@@ -101,7 +99,7 @@ public class PersonalActivity extends Activity {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    username = myMap.get("username");
+                    username = myMap.get(0).get("username");
                     TextView helloTextView = (TextView) findViewById(R.id.helloTextView);
                     helloTextView.setText("Hello, " + username);
                 }
