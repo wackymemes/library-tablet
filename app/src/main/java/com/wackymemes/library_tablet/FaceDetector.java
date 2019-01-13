@@ -66,6 +66,8 @@ public class FaceDetector {
         //transferImgFromDownloadToInternal(fileName, "face.png");
         String path = fileName;
         Mat img = Imgcodecs.imread(path);
+        Imgcodecs.imwrite(context.getFilesDir().getPath() + "/" + "imgimgimg.png", img);
+        Log.d(LOGTAG, "IMG path "+fileName);
         Log.d(LOGTAG, "IMG SIZE "+img.size());
 
         if (img.empty()) {
@@ -121,6 +123,8 @@ public class FaceDetector {
 
         if (largestFace != null) {
             Mat cropped = new Mat(img, largestFace);
+
+            Log.d(LOGTAG, "cropped IMG SIZE "+cropped.size());
 
             Imgcodecs.imwrite(context.getFilesDir().getPath() + "/" + "croppedFace.png", cropped);
             Imgcodecs.imwrite(path, img); // Rewrite the image to show in the screen with the one that has rectacles on the faces

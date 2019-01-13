@@ -1,5 +1,7 @@
 package com.wackymemes.library_tablet;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -18,13 +20,17 @@ import static org.opencv.android.CameraRenderer.LOGTAG;
 public class NaamatauluAPI extends AsyncTask<File, Void, String> {
 
     public UploadListener delegate = null;
+    private Context context;
     private String recognizedName = "";
 
     static final String baseUrl = "https://naamataulu-backend.herokuapp.com/api/v1/";
     static final String subUrl = "users/recognize/";
     OkHttpClient client = new OkHttpClient();
 
-    public NaamatauluAPI(UploadListener response){
+    PreferenceManager preferences;
+
+    public NaamatauluAPI(Context context, UploadListener response){
+        this.context = context;
         delegate = response;
     }
 
@@ -38,12 +44,13 @@ public class NaamatauluAPI extends AsyncTask<File, Void, String> {
             return null;
         if (file.length == 0 || file[0] == null)
             return null;
+        preferences = PreferenceManager.getInstance(context);
         RequestBody formBody = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("faces", file[0].getName(),
                         RequestBody.create(MediaType.parse("image/png"), file[0]))
                 .build();
-        Request request = new Request.Builder().url(baseUrl + subUrl).post(formBody).addHeader("Accept", "application/json; q=0.5").addHeader("Authorization", "Token 722dbf159017f700f69088c6dfbfc90ba3e65a56").build();
+        Request request = new Request.Builder().url(baseUrl + subUrl).post(formBody).addHeader("Accept", "application/json; q=0.5").addHeader("Authorization", "Token " + preferences.getToken()).build();
         Response response = null;
         try {
             response = this.client.newCall(request).execute();
