@@ -131,8 +131,6 @@ public class FaceDetector {
             return new File(context.getFilesDir().getPath() + "/" + "croppedFace.png");
         }
 
-        Log.d(LOGTAG, "Sendind photo");
-
         return null;
     }
 

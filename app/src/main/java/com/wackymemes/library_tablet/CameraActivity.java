@@ -2,6 +2,8 @@ package com.wackymemes.library_tablet;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.os.Bundle;
@@ -42,10 +44,44 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback {
     private FaceDetector faceDetector = new FaceDetector(this, (Activity)this);
     private Handler handler;
 
+    private Camera.Face[] lastFaces;
+
+    File cropLargestFace(String fileName, Camera.Face[] faces) {
+        double largestSize = 0;
+        Camera.Face largestFace = null;
+        for (int i = 0; i < faces.length; i++) {
+            double faceSize = faces[i].rect.height(); // They are rectangles so it doesn't matter which dimension we use
+            if (faceSize > largestSize) {
+                largestSize = faceSize;
+                largestFace = faces[i];
+            }
+        }
+        Bitmap bMap = BitmapFactory.decodeFile(fileName);
+
+        Bitmap croppedBmp = Bitmap.createBitmap(bMap, -largestFace.rect.left, -largestFace.rect.top, largestFace.rect.width(), largestFace.rect.height());
+
+        File file = new File(fileName);
+
+        try{
+            OutputStream stream = null;
+            stream = new FileOutputStream(file);
+            croppedBmp.compress(Bitmap.CompressFormat.JPEG,100,stream);
+            stream.flush();
+            stream.close();
+
+        } catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+
+        return file;
+    }
+
     private Camera.FaceDetectionListener fdListener = new Camera.FaceDetectionListener() {
         @Override
         public void onFaceDetection(Camera.Face[] faces, Camera camera) {
             if (faces.length > 0) {
+                lastFaces = faces;
                 Log.d(TAG, faces.length + " face(s)");
                 if (!recognizing.getAndSet(true)) {
                     Camera.Parameters parameters = camera.getParameters();
@@ -68,7 +104,9 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback {
                 public void run() {
                     File photo = pictureTaken(data);
                     File cropped = faceDetector.cropLargestFace(photo.getAbsolutePath());
+                    //File cropped = cropLargestFace(photo.getAbsolutePath(), lastFaces);
                     if (cropped == null) {
+                        Toast.makeText(CameraActivity.this.getApplicationContext(), "User not recognized", Toast.LENGTH_LONG).show();
                         Log.e(TAG, "Cannot get image");
                         startMainActivity();
                         return;
@@ -153,7 +191,7 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback {
     }
 
     private void startMainActivity () {
-        Intent i = new Intent(this, MainActivity.class);
+        Intent i = new Intent(this, CameraActivity.class);
         startActivity(i);
     }
 
@@ -168,6 +206,7 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback {
             @Override
             public void onUploadCompleted(String result) {
                 if (result == null) {
+                    Toast.makeText(CameraActivity.this.getApplicationContext(), "User not recognized", Toast.LENGTH_LONG).show();
                     startMainActivity();
                     return;
                 }
