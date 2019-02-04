@@ -18,6 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.wackymemes.library_tablet.FaceDetector;
 import com.wackymemes.library_tablet.NaamatauluAPI;
@@ -25,6 +26,9 @@ import com.wackymemes.library_tablet.UploadListener;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -195,9 +199,10 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback {
         startActivity(i);
     }
 
-    private void startPersonalActivity (String username) {
+    private void startPersonalActivity (String username, int userId) {
         Intent i = new Intent(this, PersonalActivity.class);
         i.putExtra("user", username);
+        i.putExtra("id", userId);
         startActivity(i);
     }
 
@@ -223,7 +228,14 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                startPersonalActivity(myMap.get(0).get("username"));
+
+                JSONObject user = new JSONObject(myMap.get(0));
+                try {
+                    startPersonalActivity(user.getString("username"), user.getInt("id"));
+                }
+                catch (JSONException e) {
+                    Log.e(TAG, "Cannot read JSON " + e);
+                }
             }
         }).execute(cropped);
     }

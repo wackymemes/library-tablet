@@ -137,6 +137,8 @@ public class BarcodeScannerActivity extends AppCompatActivity {
     private void showResult(String scanResult) {
         final Intent i = new Intent(BarcodeScannerActivity.this, ReserveActivity.class);
         i.putExtra("scanResult", scanResult);
+        i.putExtra("userId", getIntent().getExtras().getInt("id"));
+        i.putExtra("action", getIntent().getExtras().getString("action"));
         startActivity(i);
         finish();
     }
