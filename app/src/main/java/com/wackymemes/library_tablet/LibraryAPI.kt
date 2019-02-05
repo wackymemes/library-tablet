@@ -35,6 +35,7 @@ class LibraryAPI(context: Context) {
         val stringRequest = object : StringRequest(com.android.volley.Request.Method.GET, url,
                 com.android.volley.Response.Listener { response ->
                     // response
+                    Log.d(TAG, response.toString())
                     getBooks(JSONArray(response), bookView)
                 },
                 com.android.volley.Response.ErrorListener { error ->
@@ -64,6 +65,7 @@ class LibraryAPI(context: Context) {
                 com.android.volley.Response.Listener { response ->
                     // response
                     val books = JSONArray(response)
+                    Log.d(TAG, books.toString())
 
                     var bookViewIterator = 0
 
@@ -72,7 +74,7 @@ class LibraryAPI(context: Context) {
                         for (j in 0..(books.length() - 1)) {
                             val book = books.getJSONObject(j)
 
-                            if (loan.getInt("item") == loan.getInt("id")) {
+                            if (loan.getInt("item") == book.getInt("id")) {
                                 if (bookViewIterator < bookView.size) {
                                     bookView[bookViewIterator].setText(book.getString("title"))
                                     bookViewIterator += 1
@@ -113,7 +115,11 @@ class LibraryAPI(context: Context) {
                     try {
                         val bookId = book.getJSONObject(0).getInt("id")
 
-                        loanOrReturn(bookId, userId, action)
+                        if (action == "reserve") {
+                            loanBook(bookId, userId, action)
+                        } else { // action == "return"
+                            returnBook(bookId, userId, action)
+                        }
                     } catch (e: JSONException) {
                         Log.e(TAG, "Cannot read JSON $e")
                     }
@@ -134,15 +140,8 @@ class LibraryAPI(context: Context) {
         queue.add(stringRequest)
     }
 
-    fun loanOrReturn (bookId: Int, userId: Int, action: String) {
-        var returned: Boolean
-        if (action.equals("reserve")) {
-            Log.d(TAG, "Varataan kirja")
-            returned = false
-        } else { // action.equals("return")
-            Log.d(TAG, "Palautetaan kirja")
-            returned = true
-        }
+    fun loanBook (bookId: Int, userId: Int, action: String) {
+        Log.d(TAG, "Varataan kirja")
 
         // Instantiate the RequestQueue.
         val queue = Volley.newRequestQueue(this.context)
@@ -153,14 +152,16 @@ class LibraryAPI(context: Context) {
 
         val json = JSONObject(mapOf(
                 "date_loaned" to formattedDate,
-                "returned" to returned,
+                "returned" to false,
                 "item" to bookId,
                 "person" to userId
         ))
+        Log.d(TAG, json.toString())
 
-        val request = object : JsonObjectRequest(url, json,
+        val request = object : JsonObjectRequest(com.android.volley.Request.Method.POST, url, json,
                 com.android.volley.Response.Listener { response ->
                     // response
+                    Log.d(TAG, response.toString())
                 },
                 com.android.volley.Response.ErrorListener { error ->
                     Log.e(TAG, "error => " + error.toString())
@@ -176,5 +177,77 @@ class LibraryAPI(context: Context) {
         }
         // Add the request to the RequestQueue.
         queue.add(request)
+    }
+
+    fun returnBook (bookId: Int, userId: Int, action: String) {
+        Log.d(TAG, "Palautetaan kirja")
+
+        // Instantiate the RequestQueue.
+        val queue = Volley.newRequestQueue(this.context)
+        val url = "http://naamataulu-backend.herokuapp.com/api/v1/library/loans/"
+
+        val stringRequest = object : StringRequest(com.android.volley.Request.Method.GET, url,
+                com.android.volley.Response.Listener { response ->
+                    // response
+                    val loans = JSONArray(response)
+
+                    for (index in 0..(loans.length() - 1)) {
+                        var loan = loans.getJSONObject(index)
+                        if (loan.getInt("item") == bookId && loan.getInt("person") == userId) {
+                            val loanId = loan.getInt("id")
+                            Log.d(TAG, loanId.toString())
+
+                            val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+                            val formattedDate = sdf.format(Date())
+
+                            val json = JSONObject(mapOf(
+                                    "date_loaned" to formattedDate,
+                                    "returned" to true,
+                                    "item" to bookId,
+                                    "person" to userId
+                            ))
+                            Log.d(TAG, json.toString())
+
+                            var returnUrl = url + loanId + "/"
+                            Log.d(TAG, returnUrl)
+
+                            val request = object : JsonObjectRequest(com.android.volley.Request.Method.PUT, returnUrl, json,
+                                    com.android.volley.Response.Listener { response ->
+                                        // response
+                                        Log.d(TAG, response.toString())
+                                    },
+                                    com.android.volley.Response.ErrorListener { error ->
+                                        Log.e(TAG, "error => " + error.toString())
+                                    }
+                            ) {
+                                @Throws(AuthFailureError::class)
+                                override fun getHeaders(): Map<String, String> {
+                                    val params = HashMap<String, String>()
+                                    params["Authorization"] = "Token " + preferences.getToken()
+
+                                    return params
+                                }
+                            }
+                            // Add the request to the RequestQueue.
+                            queue.add(request)
+
+                            break;
+                        }
+                    }
+                },
+                com.android.volley.Response.ErrorListener { error ->
+                    Log.e(TAG, "error => " + error.toString())
+                }
+        ) {
+            @Throws(AuthFailureError::class)
+            override fun getHeaders(): Map<String, String> {
+                val params = HashMap<String, String>()
+                params["Authorization"] = "Token " + preferences.getToken()
+
+                return params
+            }
+        }
+        // Add the request to the RequestQueue.
+        queue.add(stringRequest)
     }
 }
