@@ -103,10 +103,11 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 
     Camera.PreviewCallback previewCb = new Camera.PreviewCallback() {
         public void onPreviewFrame(byte[] data, Camera camera) {
-        Camera.Parameters parameters = camera.getParameters();
-        Camera.Size size = parameters.getPreviewSize();
 
-        Image barcode = new Image(size.width, size.height, "Y800");
+        //Camera.Parameters parameters = camera.getParameters();
+        //Camera.Size size = parameters.getPreviewSize();
+
+        Image barcode = new Image(1280, 720, "Y800");
         barcode.setData(data);
 
         int result = scanner.scanImage(barcode);
