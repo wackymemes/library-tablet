@@ -36,7 +36,21 @@ class LibraryAPI(context: Context) {
                 com.android.volley.Response.Listener { response ->
                     // response
                     Log.d(TAG, response.toString())
-                    getBooks(JSONArray(response), bookView)
+
+                    val allLoans = JSONArray(response)
+                    var myLoans = JSONArray()
+
+                    for (i in 0..(allLoans.length() - 1)) {
+                        val loan = allLoans.getJSONObject(i)
+                        if (loan.getInt("person") == userId) {
+                            myLoans.put(loan)
+                        }
+                    }
+
+                    Log.d(TAG, "Omat lainat")
+                    Log.d(TAG, myLoans.toString())
+
+                    getBooks(myLoans, bookView)
                 },
                 com.android.volley.Response.ErrorListener { error ->
                     Log.e(TAG, "error => " + error.toString())
